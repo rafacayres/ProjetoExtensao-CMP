@@ -246,4 +246,8 @@ float custo_maior_esponja;	// Custo maior de Pacote esponja scotch brite (4u)
 float custo_maior_papel_toalha;	// Custo maior de Pacote papel toalha Snob (2u)
 float custo_maior_saco_lixo_50l;	// Custo maior de Pacote saco lixo 50L (100u)
 float custo_maior_gas_45kg;	// Custo maior de Botijão gás cozinha 45 kg
+
+
+
+setlocale(LC_ALL, "pt_BR");
 }
