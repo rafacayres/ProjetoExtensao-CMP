@@ -1,0 +1,7 @@
+# depslib dependency file v1.0
+1777160175 source:c:\users\cayres\documents\c\gestor quermesse\main.c
+	<stdio.h>
+	<stdlib.h>
+	<locale.h>
+	<ctype.h>
+
