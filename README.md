@@ -12,5 +12,3 @@ O projeto está em fase inicial e este espaço será utilizado para:
 ---
 *Repositório acadêmico - ADS IFSP Campinas*
 
-
-# oi
