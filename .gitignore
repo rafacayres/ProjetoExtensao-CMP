@@ -1,0 +1,11 @@
+# Compilados
+*.exe
+*.o
+
+# Pastas do VS Code e CodeBlocks
+.vscode/
+bin/
+obj/
+*.cbp
+*.depend
+*.layout
