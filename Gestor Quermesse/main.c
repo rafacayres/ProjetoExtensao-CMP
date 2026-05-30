@@ -11,13 +11,16 @@ typedef struct {
     float precoUnitarioProduto;
 } Estoque;
 
+char caminho_arquivo_estoque[256];
+
 void menuPrincipal();
 void entradaEstoque(Estoque estoqueDaQuermesse[], int *ponteiroTotalProdutos, int *ponteiroProximoId);
 void saidaEstoque(Estoque estoqueDaQuermesse[], int totalProdutos);
 void excluirProdutoEstoque(Estoque estoqueDaQuermesse[], int *ponteiroTotalProdutos);
 void consultarEstoque(Estoque estoqueDaQuermesse[], int totalProdutos);
-void carregarDados();
-void salvarDados();
+void inicializarArquivoEstoque();
+void carregarDadosEstoque(Estoque estoqueDaQuermesse[], int *ponteiroTotalProdutos, int *ponteiroProximoId);
+void salvarDadosEstoque(Estoque estoqueDaQuermesse[], int totalProdutos);
 void limparBuffer();
 void limparTela();
 
@@ -32,6 +35,9 @@ int main()
     Estoque meuEstoque[100];
     int totalProdutos = 0;
     int proximoIdDisponivel = 1;
+
+    inicializarArquivoEstoque();
+    carregarDadosEstoque(meuEstoque, &totalProdutos, &proximoIdDisponivel);
 
     do {
         menuPrincipal();
@@ -75,6 +81,8 @@ int main()
 
     } while(execucaoDoMenu != 1);
 
+    salvarDadosEstoque(meuEstoque, totalProdutos);
+
     limparTela();
     printf("==================================================\n");
     printf("         Fim da execução do programa!             \n");
@@ -105,7 +113,7 @@ void entradaEstoque(Estoque estoqueDaQuermesse[], int *ponteiroTotalProdutos, in
     printf("==================================================\n");
     printf("          ENTRADA OU EDIÇÃO DE ESTOQUE            \n");
     printf("==================================================\n\n");
-    printf("AVISO: Para cadastrar um NOVO item, use um nome inédito.\n");
+    printf("AVISO: Para cadastrar um NOVO item, use um nome único.\n");
     printf("AVISO: Para EDITAR um item existente, digite o nome IGUAL.\n");
     printf("AVISO: Ao editar, se o preço continuar o mesmo, basta redigitar o valor atual.\n");
     printf("       Caso o preço tenha mudado, digite o novo valor para atualizá-lo.\n\n");
@@ -289,7 +297,7 @@ void excluirProdutoEstoque(Estoque estoqueDaQuermesse[], int *ponteiroTotalProdu
 }
 
 void consultarEstoque(Estoque estoqueDaQuermesse[], int totalProdutos){
-    int opcaoConsulta, somarQuantidadeItens, verificarQuantidadeItens;
+    int opcaoConsulta, somarQuantidadeItens;
     int idBuscado, achou, itensCriticos;
     int posicaoProduto;
     float valorTotal;
@@ -328,17 +336,17 @@ void consultarEstoque(Estoque estoqueDaQuermesse[], int totalProdutos){
                 somarQuantidadeItens = 0;
                 faturamentoTotalEstoque = 0.0;
 
-                for (verificarQuantidadeItens = 0; verificarQuantidadeItens < totalProdutos; verificarQuantidadeItens++) {
-                    valorTotal = estoqueDaQuermesse[verificarQuantidadeItens].precoUnitarioProduto * estoqueDaQuermesse[verificarQuantidadeItens].quantidadeProduto;
+                for (posicaoProduto = 0; posicaoProduto < totalProdutos; posicaoProduto++) {
+                    valorTotal = estoqueDaQuermesse[posicaoProduto].precoUnitarioProduto * estoqueDaQuermesse[posicaoProduto].quantidadeProduto;
 
-                    printf("ID: %d\n", estoqueDaQuermesse[verificarQuantidadeItens].idProduto);
-                    printf("Nome: %s\n", estoqueDaQuermesse[verificarQuantidadeItens].nomeProduto);
-                    printf("Quantidade: %d unidades\n", estoqueDaQuermesse[verificarQuantidadeItens].quantidadeProduto);
-                    printf("Preço Unitário: R$ %.2f\n", estoqueDaQuermesse[verificarQuantidadeItens].precoUnitarioProduto);
+                    printf("ID: %d\n", estoqueDaQuermesse[posicaoProduto].idProduto);
+                    printf("Nome: %s\n", estoqueDaQuermesse[posicaoProduto].nomeProduto);
+                    printf("Quantidade: %d unidades\n", estoqueDaQuermesse[posicaoProduto].quantidadeProduto);
+                    printf("Preço Unitário: R$ %.2f\n", estoqueDaQuermesse[posicaoProduto].precoUnitarioProduto);
                     printf("Valor total: R$ %.2f\n", valorTotal);
                     printf("-----------------------------------\n\n");
 
-                    somarQuantidadeItens = somarQuantidadeItens + estoqueDaQuermesse[verificarQuantidadeItens].quantidadeProduto;
+                    somarQuantidadeItens = somarQuantidadeItens + estoqueDaQuermesse[posicaoProduto].quantidadeProduto;
                     faturamentoTotalEstoque = faturamentoTotalEstoque + valorTotal;
                 }
 
@@ -421,6 +429,59 @@ void consultarEstoque(Estoque estoqueDaQuermesse[], int totalProdutos){
                 getchar();
         }
     } while(opcaoConsulta != 4);
+}
+
+void inicializarArquivoEstoque() {
+    strcpy(caminho_arquivo_estoque, "estoque_quermesse.txt");
+    FILE *arquivo = fopen(caminho_arquivo_estoque, "r");
+    if (arquivo == NULL) {
+        arquivo = fopen(caminho_arquivo_estoque, "w");
+        fprintf(arquivo, "%d\n", 0);
+        fclose(arquivo);
+    } else {
+        fclose(arquivo);
+    }
+}
+
+void carregarDadosEstoque(Estoque estoqueDaQuermesse[], int *ponteiroTotalProdutos, int *ponteiroProximoId) {
+    FILE *arquivo = fopen(caminho_arquivo_estoque, "r");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo !!!");
+        exit(EXIT_FAILURE);
+    }
+    fscanf(arquivo, "%d ", ponteiroTotalProdutos);
+    int maiorId = 0;
+    int posicaoProduto;
+    for (posicaoProduto = 0; posicaoProduto < *ponteiroTotalProdutos; posicaoProduto++) {
+        Estoque produto;
+        fscanf(arquivo, "%d ", &produto.idProduto);
+        fscanf(arquivo, "%355[^\n] ", produto.nomeProduto);
+        fscanf(arquivo, "%d ", &produto.quantidadeProduto);
+        fscanf(arquivo, "%f ", &produto.precoUnitarioProduto);
+        estoqueDaQuermesse[posicaoProduto] = produto;
+        if (produto.idProduto > maiorId) {
+            maiorId = produto.idProduto;
+        }
+    }
+    *ponteiroProximoId = maiorId + 1;
+    fclose(arquivo);
+}
+
+void salvarDadosEstoque(Estoque estoqueDaQuermesse[], int totalProdutos) {
+    FILE *arquivo = fopen(caminho_arquivo_estoque, "w");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo !!!");
+        exit(EXIT_FAILURE);
+    }
+    fprintf(arquivo, "%d\n", totalProdutos);
+    int posicaoProduto;
+    for (posicaoProduto = 0; posicaoProduto < totalProdutos; posicaoProduto++) {
+        fprintf(arquivo, "%d\n", estoqueDaQuermesse[posicaoProduto].idProduto);
+        fprintf(arquivo, "%s\n", estoqueDaQuermesse[posicaoProduto].nomeProduto);
+        fprintf(arquivo, "%d\n", estoqueDaQuermesse[posicaoProduto].quantidadeProduto);
+        fprintf(arquivo, "%.2f\n", estoqueDaQuermesse[posicaoProduto].precoUnitarioProduto);
+    }
+    fclose(arquivo);
 }
 
 void menuPrincipal() {
